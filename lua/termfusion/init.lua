@@ -1,5 +1,12 @@
 local M = {}
 
+local state = {
+	floating = {
+		buf = -1,
+		win = -1,
+	},
+}
+
 local function create_floating_win(opts)
 	local opts = opts or {}
 
@@ -14,10 +21,15 @@ local function create_floating_win(opts)
 	local row = math.floor((screen_h - win_h) / 2)
 
 	-- Create a new buffer
-	local buf = vim.api.nvim_create_buf(false, true)
+	local buf = nil
+	if vim.api.nvim_buf_is_valid(opts.buf) then
+		buf = opts.buf
+	else
+		buf = vim.api.nvim_create_buf(false, true)
+	end
 
 	local win_opts = {
-		style = "minimal",
+		style = opts.style or "minimal",
 		relative = "editor",
 		width = win_w,
 		height = win_h,
@@ -33,6 +45,14 @@ end
 
 function M.setup(opts)
 	opts = opts or {}
+	vim.api.nvim_create_user_command("TermFloating", function()
+		if not vim.api.nvim_win_is_valid(state.floating.win) then
+			opts.buf = state.floating.buf
+			state.floating = create_floating_win(opts)
+		else
+			vim.api.nvim_win_hide(state.floating.win)
+		end
+	end, {})
 end
 
 return M
