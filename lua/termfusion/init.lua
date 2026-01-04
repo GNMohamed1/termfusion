@@ -49,6 +49,7 @@ function M.setup(opts)
 		if not vim.api.nvim_win_is_valid(state.floating.win) then
 			opts.buf = state.floating.buf
 			state.floating = create_floating_win(opts)
+			vim.api.nvim_set_current_win(state.floating.win)
 		else
 			vim.api.nvim_win_hide(state.floating.win)
 		end
