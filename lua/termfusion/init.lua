@@ -43,17 +43,27 @@ local function create_floating_win(opts)
 	return { buf = buf, win = win }
 end
 
+local function toggle_floating_terminal(opts)
+	if not vim.api.nvim_win_is_valid(state.floating.win) then
+		opts.buf = state.floating.buf
+		state.floating = create_floating_win(opts)
+		vim.api.nvim_set_current_win(state.floating.win)
+		if vim.bo[state.floating.buf].buftype ~= "terminal" then
+			vim.cmd.terminal()
+		end
+	else
+		vim.api.nvim_win_hide(state.floating.win)
+	end
+end
+
 function M.setup(opts)
 	opts = opts or {}
 	vim.api.nvim_create_user_command("TermFloating", function()
-		if not vim.api.nvim_win_is_valid(state.floating.win) then
-			opts.buf = state.floating.buf
-			state.floating = create_floating_win(opts)
-			vim.api.nvim_set_current_win(state.floating.win)
-		else
-			vim.api.nvim_win_hide(state.floating.win)
-		end
+		toggle_floating_terminal(opts)
 	end, {})
+	vim.keymap.set({ "n", "t" }, "<space>tf", function()
+		toggle_floating_terminal(opts)
+	end, { noremap = true, silent = true })
 end
 
 return M
